@@ -28,12 +28,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push Docker image to ECR
-        run: |
-          IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-          docker build -t $IMAGE_URI .
-            - name: Build, tag, and push Docker image to ECR
+      - name: Build Docker image
         run: |
           IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
@@ -50,8 +45,6 @@ jobs:
       - name: Push Docker image to ECR
         run: |
           docker push $IMAGE_URI
-    
-          docker push $IMAGE_URI
 
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@master
@@ -62,7 +55,7 @@ jobs:
           script: |
             echo "Deploying image to EC2..."
             aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
-            sudo docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+            sudo docker pull ${{ env.IMAGE_URI }}
             sudo docker stop python-app || true
             sudo docker rm python-app || true
-            sudo docker run -d --name python-app -p 8000:8000 ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+            sudo docker run -d --name python-app -p 8000:8000 ${{ env.IMAGE_URI }}
