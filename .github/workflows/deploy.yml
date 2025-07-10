@@ -45,6 +45,6 @@ jobs:
             echo "Deploying image to EC2..."
             aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
             sudo docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
-            sudo docker stop myapp || true
-            sudo ocker rm myapp || true
-            sudo docker run -d --name myapp -p 8000:8000 ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+            sudo docker stop python-app || true
+            sudo ocker rm python-app || true
+            sudo docker run -d --name python-app -p 8000:8000 ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
